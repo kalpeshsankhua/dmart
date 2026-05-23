@@ -233,15 +233,15 @@
     box-shadow: var(--shadow);
   }
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { width: 100%; border-collapse: collapse; min-width: 500px; }
+  table { width: 100%; border-collapse: collapse; min-width: 0; }
   thead { background: var(--surface2); }
   thead th {
-    padding: 10px 12px;
+    padding: 8px 6px;
     text-align: left;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     color: var(--text2);
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
@@ -253,12 +253,32 @@
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--surface2); }
   tbody td {
-    padding: 10px 12px;
-    font-size: 13px;
+    padding: 8px 6px;
+    font-size: 12px;
     color: var(--text);
     vertical-align: middle;
   }
-  .td-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  /* First col (checkbox) and # col stay tight */
+  tbody td:first-child, thead th:first-child { padding-left: 10px; padding-right: 4px; }
+  tbody td:last-child,  thead th:last-child  { padding-right: 8px; }
+  .td-actions {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  /* Compact action buttons on mobile */
+  .td-actions .btn {
+    padding: 4px 7px;
+    font-size: 11px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  @media (min-width: 600px) {
+    thead th { padding: 10px 10px; font-size: 11px; }
+    tbody td  { padding: 10px 10px; font-size: 13px; }
+    .td-actions .btn { padding: 5px 10px; font-size: 12px; }
+  }
   .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -1054,7 +1074,7 @@ function renderOrderTable() {
       <td>₹${parseFloat(item.price||0).toFixed(2)}</td>
       <td>${item.selected === 'Yes' ? '<span class="badge badge-yes">✓ Added</span>' : '<span class="badge badge-no">—</span>'}</td>
       <td class="td-actions">
-        <button class="btn btn-accent2 btn-sm" onclick="addOneOrderToPurchase('${item.id}')" title="Move to Purchase" style="padding:5px 8px;font-size:11px;gap:2px;">🛍️ →</button>
+        <button class="btn btn-accent2 btn-sm" onclick="addOneOrderToPurchase('${item.id}')" title="Move to Purchase">🛍️ →</button>
         <button class="btn btn-secondary btn-sm btn-icon" onclick="editOrderItem('${item.id}')" title="Edit">✏️</button>
         <button class="btn btn-danger btn-sm btn-icon" onclick="deleteOrderItem('${item.id}')" title="Delete">🗑</button>
       </td>
@@ -1140,7 +1160,7 @@ function renderPurchaseTable() {
           <td>₹${parseFloat(item.price||0).toFixed(2)}</td>
           <td>${item.purchased === 'Yes' ? '<span class="badge badge-yes">✓ Purchased</span>' : '<span class="badge badge-no">Pending</span>'}</td>
           <td class="td-actions">
-            ${item.purchased !== 'Yes' ? `<button class="btn btn-primary btn-sm" onclick="confirmOnePurchase('${item.id}')" title="Confirm & move to Stock" style="padding:5px 8px;font-size:11px;gap:2px;">✓ →Stock</button>` : ''}
+            ${item.purchased !== 'Yes' ? `<button class="btn btn-primary btn-sm" onclick="confirmOnePurchase('${item.id}')" title="Confirm & move to Stock">✓ →Stock</button>` : ''}
             ${item.purchased !== 'Yes' ? `<button class="btn btn-secondary btn-sm btn-icon" onclick="editPurchaseItem('${item.id}')" title="Edit">✏️</button>` : ''}
             <button class="btn btn-danger btn-sm btn-icon" onclick="deletePurchaseItem('${item.id}')" title="Delete">🗑</button>
           </td>
@@ -1166,7 +1186,7 @@ function renderStockTable() {
       <td><span class="badge badge-stock">${esc(item.unit)}</span></td>
       <td>₹${parseFloat(item.price||0).toFixed(2)}</td>
       <td class="td-actions">
-        <button class="btn btn-primary btn-sm" onclick="saveOneStockQty('${item.id}')" title="Save & check stock" style="padding:5px 8px;font-size:11px;gap:2px;">💾 Save</button>
+        <button class="btn btn-primary btn-sm" onclick="saveOneStockQty('${item.id}')" title="Save & check stock">💾 Save</button>
         <button class="btn btn-secondary btn-sm btn-icon" onclick="editStockItem('${item.id}')" title="Edit">✏️</button>
         <button class="btn btn-danger btn-sm btn-icon" onclick="deleteStockItem('${item.id}')" title="Delete">🗑</button>
       </td>
@@ -1190,7 +1210,7 @@ function renderReorderTable() {
       <td><span class="badge badge-out">${esc(item.unit)}</span></td>
       <td>₹${parseFloat(item.price||0).toFixed(2)}</td>
       <td class="td-actions">
-        <button class="btn btn-accent2 btn-sm" onclick="reorderItemToPurchase('${item.id}')" style="padding:5px 8px;font-size:11px;">🛒 → Purchase</button>
+        <button class="btn btn-accent2 btn-sm" onclick="reorderItemToPurchase('${item.id}')">🛒 → Purchase</button>
       </td>
     </tr>
   `).join('');
@@ -1610,7 +1630,7 @@ function renderMasterTable() {
       <td><span class="badge badge-stock">${esc(item.unit)}</span></td>
       <td>₹${parseFloat(item.price||0).toFixed(2)}</td>
       <td class="td-actions">
-        <button class="btn btn-accent2 btn-sm" onclick="addOneMasterToPurchase('${item.id}')" title="Send to Purchase" style="padding:5px 8px;font-size:11px;gap:2px;">🛍️ →</button>
+        <button class="btn btn-accent2 btn-sm" onclick="addOneMasterToPurchase('${item.id}')" title="Send to Purchase">🛍️ →</button>
         <button class="btn btn-secondary btn-sm btn-icon" onclick="editMasterItem('${item.id}')" title="Edit">✏️</button>
         <button class="btn btn-danger btn-sm btn-icon" onclick="deleteMasterItem('${item.id}')" title="Delete">🗑</button>
       </td>
