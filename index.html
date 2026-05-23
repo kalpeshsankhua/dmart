@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kalpesh Grocery Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: #e2e0d8;
+    --border2: #d0cec4;
+    --text: #1a1916;
+    --text2: #6b6860;
+    --text3: #9b9890;
+    --accent: #2d6a4f;
+    --accent-light: #e8f4ee;
+    --accent2: #e07b39;
+    --accent2-light: #fdf0e8;
+    --danger: #c0392b;
+    --danger-light: #fdf0ee;
+    --warning: #d4a017;
+    --warning-light: #fdf8e8;
+    --info: #2980b9;
+    --info-light: #e8f4fd;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.07), 0 4px 6px rgba(0,0,0,0.05);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --radius-lg: 16px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* HEADER */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .header-inner {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .app-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .app-logo {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .app-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .app-sub {
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 400;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .sync-status {
+    font-size: 11px;
+    color: var(--text3);
+    text-align: right;
+    line-height: 1.3;
+  }
+  .sync-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text3);
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+  .sync-dot.ok { background: var(--accent); }
+  .sync-dot.err { background: var(--danger); }
+  .sync-dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .btn-sync {
+    background: var(--accent-light);
+    color: var(--accent);
+    border: 1px solid rgba(45,106,79,0.2);
+    border-radius: var(--radius-sm);
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .btn-sync:hover { background: var(--accent); color: #fff; }
+
+  /* TABS */
+  .tabs-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs-bar::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 12px 14px;
+    border: none;
+    background: none;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+  .tab-badge {
+    background: var(--surface2);
+    color: var(--text2);
+    border-radius: 20px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tab-btn.active .tab-badge {
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  /* MAIN CONTENT */
+  .main { padding: 16px; max-width: 900px; margin: 0 auto; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* TOOLBAR */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .toolbar-left { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .toolbar-right { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #235c42; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border2); }
+  .btn-secondary:hover { background: var(--surface2); }
+  .btn-accent2 { background: var(--accent2); color: #fff; }
+  .btn-accent2:hover { background: #c96c2a; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #a93226; }
+  .btn-warning { background: var(--warning); color: #fff; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-icon { padding: 6px 8px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; min-width: 500px; }
+  thead { background: var(--surface2); }
+  thead th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td {
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .td-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text3);
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+  .empty-text { font-size: 14px; font-weight: 500; }
+  .empty-sub { font-size: 12px; margin-top: 4px; }
+
+  /* CHECKBOX */
+  .cb-wrap { display: flex; align-items: center; justify-content: center; }
+  input[type="checkbox"] {
+    width: 17px; height: 17px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-yes { background: var(--accent-light); color: var(--accent); }
+  .badge-no { background: var(--surface2); color: var(--text3); }
+  .badge-stock { background: var(--info-light); color: var(--info); }
+  .badge-out { background: var(--danger-light); color: var(--danger); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius) var(--radius);
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.2s ease;
+  }
+  @media (min-width: 600px) {
+    .modal-overlay { align-items: center; }
+    .modal { border-radius: var(--radius-lg); }
+  }
+  @keyframes slideUp { from { transform: translateY(30px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  .modal-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-close {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--surface2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    color: var(--text2);
+  }
+  .modal-body { padding: 20px; }
+  .modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  /* FORM */
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border2);
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  .form-control:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(45,106,79,0.1);
+  }
+  select.form-control { cursor: pointer; }
+
+  /* TOAST */
+  .toast-wrap {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    pointer-events: none;
+    width: calc(100% - 32px);
+    max-width: 380px;
+  }
+  .toast {
+    background: var(--text);
+    color: #fff;
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow-md);
+    animation: toastIn 0.2s ease;
+    width: 100%;
+    text-align: center;
+  }
+  .toast.success { background: var(--accent); }
+  .toast.error { background: var(--danger); }
+  .toast.warning { background: var(--warning); }
+  @keyframes toastIn { from { transform: translateY(10px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+  /* INFO BAR */
+  .info-bar {
+    background: var(--info-light);
+    border: 1px solid rgba(41,128,185,0.2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--info);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* CONFIG */
+  .config-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .config-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .config-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-bottom: 16px;
+  }
+  .url-display {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    word-break: break-all;
+    color: var(--text2);
+    margin-bottom: 12px;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  @media (min-width: 500px) { .stats-row { grid-template-columns: repeat(4, 1fr); } }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+  }
+  .stat-val {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-lbl { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* REORDER WARNING */
+  .reorder-row { background: #fff9f9 !important; }
+  .reorder-row:hover { background: #fff5f5 !important; }
+
+  /* Number input */
+  input[type="number"] { -moz-appearance: textfield; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  /* Qty input in table */
+  .qty-input {
+    width: 70px;
+    padding: 5px 8px;
+    border: 1.5px solid var(--border2);
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-size: 13px;
+    text-align: center;
+  }
+  .qty-input:focus { outline: none; border-color: var(--accent); }
+
+  /* Loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+  }
+  .spinner-dark {
+    border-color: rgba(45,106,79,0.2);
+    border-top-color: var(--accent);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Select all row */
+  .select-all-row th { background: var(--accent-light); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="header-inner">
+    <div class="app-title">
+      <div class="app-logo">🛒</div>
+      <div>
+        <div class="app-name">Kalpesh Grocery</div>
+        <div class="app-sub">Tracker</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="sync-status" id="syncStatus">
+        <span class="sync-dot" id="syncDot"></span>
+        <span id="syncText">Not synced</span><br>
+        <span id="syncTime" style="font-size:10px;color:var(--text3)"></span>
+      </div>
+      <button class="btn-sync" onclick="syncAll()">⟳ Sync</button>
+    </div>
+  </div>
+  <!-- TABS -->
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="showTab('order')" id="tab-order">
+      📋 Order List <span class="tab-badge" id="badge-order">0</span>
+    </button>
+    <button class="tab-btn" onclick="showTab('purchase')" id="tab-purchase">
+      🛍️ Purchase <span class="tab-badge" id="badge-purchase">0</span>
+    </button>
+    <button class="tab-btn" onclick="showTab('stock')" id="tab-stock">
+      📦 Stock <span class="tab-badge" id="badge-stock">0</span>
+    </button>
+    <button class="tab-btn" onclick="showTab('reorder')" id="tab-reorder">
+      🚨 Reorder <span class="tab-badge" id="badge-reorder">0</span>
+    </button>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-val" id="stat-order">0</div>
+      <div class="stat-lbl">Order Items</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-purchase">0</div>
+      <div class="stat-lbl">Purchases</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-stock">0</div>
+      <div class="stat-lbl">In Stock</div>
+    </div>
+    <div class="stat-card" style="border-color:rgba(192,57,43,0.25);">
+      <div class="stat-val" id="stat-reorder" style="color:var(--danger)">0</div>
+      <div class="stat-lbl">Out of Stock</div>
+    </div>
+  </div>
+
+  <!-- ======================== TAB 1: ORDER LIST ======================== -->
+  <div class="tab-panel active" id="panel-order">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="section-title">Order List</span>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-secondary btn-sm" onclick="openAddOrderModal()">+ Add Item</button>
+        <button class="btn btn-accent2 btn-sm" onclick="addToPurchaseList()" id="btnAddToPurchase">
+          🛍️ Add to Purchase
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="orderTable">
+          <thead>
+            <tr class="select-all-row">
+              <th style="width:36px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
+              <th>#</th>
+              <th>Item Name</th>
+              <th>Qty</th>
+              <th>Unit</th>
+              <th>Price (₹)</th>
+              <th>Selected</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="orderBody">
+            <tr><td colspan="8" class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No items yet</div><div class="empty-sub">Add your regular grocery items</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== TAB 2: PURCHASE LIST ======================== -->
+  <div class="tab-panel" id="panel-purchase">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="section-title">Purchase List</span>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-secondary btn-sm" onclick="openAddPurchaseModal()">+ Add Purchase</button>
+        <button class="btn btn-primary btn-sm" onclick="markPurchasedSelected()" id="btnMarkPurchased">
+          ✓ Mark Purchased
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="purchaseTable">
+          <thead>
+            <tr>
+              <th style="width:36px"><input type="checkbox" id="selectAllPurchase" onchange="toggleSelectAllPurchase(this)"></th>
+              <th>#</th>
+              <th>Item Name</th>
+              <th>Qty</th>
+              <th>Unit</th>
+              <th>Price (₹)</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="purchaseBody">
+            <tr><td colspan="8" class="empty-state"><div class="empty-icon">🛍️</div><div class="empty-text">No purchases yet</div><div class="empty-sub">Add purchases or move from Order List</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== TAB 3: STOCK LIST ======================== -->
+  <div class="tab-panel" id="panel-stock">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="section-title">Stock Items</span>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-secondary btn-sm" onclick="openAddStockModal()">+ Add Stock</button>
+        <button class="btn btn-primary btn-sm" onclick="saveAllStockQty()">
+          💾 Save Qty
+        </button>
+      </div>
+    </div>
+    <div class="info-bar">
+      ℹ️ Edit the quantity fields directly and tap <strong>Save Qty</strong> to update stock. Items with 0 quantity move to Reorder list.
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="stockTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Item Name</th>
+              <th>Quantity</th>
+              <th>Unit</th>
+              <th>Price (₹)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="stockBody">
+            <tr><td colspan="6" class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No stock items</div><div class="empty-sub">Items appear here after purchase is confirmed</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== TAB 4: REORDER LIST ======================== -->
+  <div class="tab-panel" id="panel-reorder">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="section-title">Out of Stock / Reorder</span>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-accent2 btn-sm" onclick="reorderAll()">🛒 Add All to Order</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="reorderTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Item Name</th>
+              <th>Last Qty</th>
+              <th>Unit</th>
+              <th>Last Price (₹)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="reorderBody">
+            <tr><td colspan="6" class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">All stocked up!</div><div class="empty-sub">Out-of-stock items appear here automatically</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ======================== MODALS ======================== -->
+
+<!-- ADD/EDIT ORDER MODAL -->
+<div class="modal-overlay" id="modalOrder">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalOrderTitle">Add Order Item</div>
+      <button class="modal-close" onclick="closeModal('modalOrder')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="orderEditId">
+      <div class="form-group">
+        <label class="form-label">Item Name *</label>
+        <input class="form-control" id="orderItemName" placeholder="e.g. Basmati Rice" type="text">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Quantity</label>
+          <input class="form-control" id="orderQty" type="number" step="0.01" placeholder="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit</label>
+          <select class="form-control" id="orderUnit">
+            <option>NOS</option>
+            <option>Kgs</option>
+            <option>Grams</option>
+            <option>Litre</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Price (₹) - Latest Purchase</label>
+        <input class="form-control" id="orderPrice" type="number" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalOrder')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrderItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT PURCHASE MODAL -->
+<div class="modal-overlay" id="modalPurchase">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalPurchaseTitle">Add Purchase</div>
+      <button class="modal-close" onclick="closeModal('modalPurchase')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="purchaseEditId">
+      <div class="form-group">
+        <label class="form-label">Purchase Date *</label>
+        <input class="form-control" id="purchaseDate" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Item Name *</label>
+        <input class="form-control" id="purchaseItemName" placeholder="e.g. Basmati Rice" type="text" list="orderItemSuggestions">
+        <datalist id="orderItemSuggestions"></datalist>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Quantity</label>
+          <input class="form-control" id="purchaseQty" type="number" step="0.01" placeholder="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit</label>
+          <select class="form-control" id="purchaseUnit">
+            <option>NOS</option>
+            <option>Kgs</option>
+            <option>Grams</option>
+            <option>Litre</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Actual Price (₹)</label>
+        <input class="form-control" id="purchasePrice" type="number" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalPurchase')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePurchaseItem()">Save Purchase</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT STOCK MODAL -->
+<div class="modal-overlay" id="modalStock">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalStockTitle">Add Stock Item</div>
+      <button class="modal-close" onclick="closeModal('modalStock')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="stockEditId">
+      <div class="form-group">
+        <label class="form-label">Item Name *</label>
+        <input class="form-control" id="stockItemName" placeholder="e.g. Basmati Rice" type="text">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Quantity</label>
+          <input class="form-control" id="stockQty" type="number" step="0.01" placeholder="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit</label>
+          <select class="form-control" id="stockUnit">
+            <option>NOS</option>
+            <option>Kgs</option>
+            <option>Grams</option>
+            <option>Litre</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Price (₹)</label>
+        <input class="form-control" id="stockPrice" type="number" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalStock')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStockItem()">Save Stock</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ============================================================
+//  CONFIGURATION — Replace with your Apps Script Web App URL
+// ============================================================
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDAQhqS_deBDtNbPlcmjl8fcFowQlbsTqPvDsxRgBMmrj2ogbfUo5apmCFMs6cwvtJXA/exec";
+// ============================================================
+
+// ---- State ----
+let orderItems = [];
+let purchaseItems = [];
+let stockItems = [];
+let autoSyncTimer = null;
+
+// ---- Init ----
+document.addEventListener('DOMContentLoaded', () => {
+  setTodayDate();
+  loadAll();
+  startAutoSync();
+});
+
+function setTodayDate() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('purchaseDate').value = today;
+}
+
+// ============================================================
+//  TAB NAVIGATION
+// ============================================================
+function showTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+// ============================================================
+//  API COMMUNICATION
+// ============================================================
+async function apiCall(action, data = {}) {
+  const url = `${APPS_SCRIPT_URL}?action=${action}`;
+  const body = JSON.stringify({ action, ...data });
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json;
+}
+
+// ============================================================
+//  SYNC
+// ============================================================
+async function syncAll(silent = false) {
+  setSyncState('syncing', 'Syncing...');
+  try {
+    const data = await apiCall('getAll');
+    orderItems = data.orderItems || [];
+    purchaseItems = data.purchaseItems || [];
+    stockItems = data.stockItems || [];
+    renderAll();
+    const now = new Date().toLocaleTimeString();
+    setSyncState('ok', 'Synced');
+    document.getElementById('syncTime').textContent = now;
+    if (!silent) toast('Data synced successfully', 'success');
+  } catch (e) {
+    setSyncState('err', 'Sync failed');
+    if (!silent) toast('Sync failed: ' + e.message, 'error');
+  }
+}
+
+function loadAll() { syncAll(true); }
+
+function setSyncState(state, text) {
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncText');
+  dot.className = 'sync-dot ' + state;
+  txt.textContent = text;
+}
+
+function startAutoSync() {
+  if (autoSyncTimer) clearInterval(autoSyncTimer);
+  autoSyncTimer = setInterval(() => syncAll(true), 2 * 60 * 1000); // 2 minutes
+}
+
+// ============================================================
+//  RENDER
+// ============================================================
+function renderAll() {
+  renderOrderTable();
+  renderPurchaseTable();
+  renderStockTable();
+  renderReorderTable();
+  updateStats();
+  updateSuggestions();
+}
+
+function updateStats() {
+  const outOfStock = stockItems.filter(i => parseFloat(i.quantity) <= 0);
+  document.getElementById('stat-order').textContent = orderItems.length;
+  document.getElementById('stat-purchase').textContent = purchaseItems.length;
+  document.getElementById('stat-stock').textContent = stockItems.filter(i => parseFloat(i.quantity) > 0).length;
+  document.getElementById('stat-reorder').textContent = outOfStock.length;
+  document.getElementById('badge-order').textContent = orderItems.length;
+  document.getElementById('badge-purchase').textContent = purchaseItems.length;
+  document.getElementById('badge-stock').textContent = stockItems.filter(i => parseFloat(i.quantity) > 0).length;
+  document.getElementById('badge-reorder').textContent = outOfStock.length;
+}
+
+// --- ORDER TABLE ---
+function renderOrderTable() {
+  const sorted = [...orderItems].sort((a,b) => (a.serial||0) - (b.serial||0));
+  const tbody = document.getElementById('orderBody');
+  if (!sorted.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No items yet</div><div class="empty-sub">Add your regular grocery items</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = sorted.map((item, idx) => `
+    <tr>
+      <td class="cb-wrap"><input type="checkbox" class="order-cb" value="${item.id}" ${item.selected === 'Yes' ? 'checked' : ''}></td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">${idx+1}</td>
+      <td style="font-weight:600">${esc(item.name)}</td>
+      <td>${esc(item.quantity)}</td>
+      <td><span class="badge badge-stock">${esc(item.unit)}</span></td>
+      <td>₹${parseFloat(item.price||0).toFixed(2)}</td>
+      <td>${item.selected === 'Yes' ? '<span class="badge badge-yes">✓ Added</span>' : '<span class="badge badge-no">—</span>'}</td>
+      <td class="td-actions">
+        <button class="btn btn-accent2 btn-sm" onclick="addOneOrderToPurchase('${item.id}')" title="Move to Purchase" style="padding:5px 8px;font-size:11px;gap:2px;">🛍️ →</button>
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="editOrderItem('${item.id}')" title="Edit">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteOrderItem('${item.id}')" title="Delete">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// --- PURCHASE TABLE ---
+function formatDate(raw) {
+  if (!raw) return '';
+  // Handle full Date object strings like "Sun May 24 2026 00:00:00 GMT+0530 (India Standard Time)"
+  // or ISO strings "2026-05-24" or "2026-05-24T00:00:00.000Z"
+  let d;
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+    // ISO / yyyy-mm-dd — parse directly to avoid timezone shift
+    const parts = raw.substring(0,10).split('-');
+    d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+  } else {
+    d = new Date(raw);
+  }
+  if (isNaN(d.getTime())) return raw; // fallback: show as-is
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
+}
+
+function renderPurchaseTable() {
+  const tbody = document.getElementById('purchaseBody');
+  if (!purchaseItems.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><div class="empty-icon">🛍️</div><div class="empty-text">No purchases yet</div><div class="empty-sub">Add purchases or move from Order List</div></td></tr>`;
+    return;
+  }
+
+  // Group by date (newest date first, within date sort by price high→low)
+  const groups = {};
+  purchaseItems.forEach(item => {
+    const key = formatDate(item.date) || 'No Date';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(item);
+  });
+
+  // Sort date groups newest first
+  const sortedKeys = Object.keys(groups).sort((a, b) => {
+    const toMs = s => { const p = s.split('/'); return p.length===3 ? new Date(`20${p[2]}-${p[1]}-${p[0]}`).getTime() : 0; };
+    return toMs(b) - toMs(a);
+  });
+
+  let globalIdx = 0;
+  let html = '';
+  sortedKeys.forEach(dateKey => {
+    const items = groups[dateKey].sort((a,b) => parseFloat(b.price||0) - parseFloat(a.price||0));
+    // Date separator row
+    html += `
+      <tr>
+        <td colspan="8" style="
+          padding:6px 12px;
+          background:var(--surface2);
+          border-bottom:1px solid var(--border);
+          border-top:1px solid var(--border2);
+        ">
+          <span style="
+            font-family:var(--mono);
+            font-size:11px;
+            font-weight:700;
+            color:var(--text2);
+            letter-spacing:0.05em;
+            background:var(--border2);
+            padding:2px 9px;
+            border-radius:20px;
+          ">📅 ${dateKey}</span>
+        </td>
+      </tr>`;
+    items.forEach(item => {
+      globalIdx++;
+      html += `
+        <tr>
+          <td class="cb-wrap"><input type="checkbox" class="purchase-cb" value="${item.id}" ${item.purchased === 'Yes' ? 'disabled' : ''}></td>
+          <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">${globalIdx}</td>
+          <td style="font-weight:600">${esc(item.name)}</td>
+          <td>${esc(item.quantity)}</td>
+          <td><span class="badge badge-stock">${esc(item.unit)}</span></td>
+          <td>₹${parseFloat(item.price||0).toFixed(2)}</td>
+          <td>${item.purchased === 'Yes' ? '<span class="badge badge-yes">✓ Purchased</span>' : '<span class="badge badge-no">Pending</span>'}</td>
+          <td class="td-actions">
+            ${item.purchased !== 'Yes' ? `<button class="btn btn-primary btn-sm" onclick="confirmOnePurchase('${item.id}')" title="Confirm & move to Stock" style="padding:5px 8px;font-size:11px;gap:2px;">✓ →Stock</button>` : ''}
+            ${item.purchased !== 'Yes' ? `<button class="btn btn-secondary btn-sm btn-icon" onclick="editPurchaseItem('${item.id}')" title="Edit">✏️</button>` : ''}
+            <button class="btn btn-danger btn-sm btn-icon" onclick="deletePurchaseItem('${item.id}')" title="Delete">🗑</button>
+          </td>
+        </tr>`;
+    });
+  });
+  tbody.innerHTML = html;
+}
+
+// --- STOCK TABLE ---
+function renderStockTable() {
+  const sorted = [...stockItems].filter(i => parseFloat(i.quantity) > 0).sort((a,b) => parseFloat(b.quantity||0) - parseFloat(a.quantity||0));
+  const tbody = document.getElementById('stockBody');
+  if (!sorted.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No stock items</div><div class="empty-sub">Items appear here after purchase is confirmed</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = sorted.map((item, idx) => `
+    <tr>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">${idx+1}</td>
+      <td style="font-weight:600">${esc(item.name)}</td>
+      <td><input type="number" class="qty-input" id="stockQtyInput_${item.id}" value="${item.quantity}" step="0.01" min="0"></td>
+      <td><span class="badge badge-stock">${esc(item.unit)}</span></td>
+      <td>₹${parseFloat(item.price||0).toFixed(2)}</td>
+      <td class="td-actions">
+        <button class="btn btn-primary btn-sm" onclick="saveOneStockQty('${item.id}')" title="Save & check stock" style="padding:5px 8px;font-size:11px;gap:2px;">💾 Save</button>
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="editStockItem('${item.id}')" title="Edit">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteStockItem('${item.id}')" title="Delete">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// --- REORDER TABLE ---
+function renderReorderTable() {
+  const outItems = stockItems.filter(i => parseFloat(i.quantity) <= 0);
+  const tbody = document.getElementById('reorderBody');
+  if (!outItems.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">All stocked up!</div><div class="empty-sub">Out-of-stock items appear here automatically</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = outItems.map((item, idx) => `
+    <tr class="reorder-row">
+      <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">${idx+1}</td>
+      <td style="font-weight:600;color:var(--danger)">${esc(item.name)}</td>
+      <td>${esc(item.quantity)}</td>
+      <td><span class="badge badge-out">${esc(item.unit)}</span></td>
+      <td>₹${parseFloat(item.price||0).toFixed(2)}</td>
+      <td class="td-actions">
+        <button class="btn btn-accent2 btn-sm" onclick="reorderItem('${item.id}')">🛒 Reorder</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function updateSuggestions() {
+  const dl = document.getElementById('orderItemSuggestions');
+  dl.innerHTML = orderItems.map(i => `<option value="${esc(i.name)}">`).join('');
+}
+
+// ============================================================
+//  ORDER ITEMS CRUD
+// ============================================================
+function openAddOrderModal() {
+  document.getElementById('modalOrderTitle').textContent = 'Add Order Item';
+  document.getElementById('orderEditId').value = '';
+  document.getElementById('orderItemName').value = '';
+  document.getElementById('orderQty').value = '';
+  document.getElementById('orderUnit').value = 'NOS';
+  document.getElementById('orderPrice').value = '';
+  openModal('modalOrder');
+}
+
+function editOrderItem(id) {
+  const item = orderItems.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('modalOrderTitle').textContent = 'Edit Order Item';
+  document.getElementById('orderEditId').value = id;
+  document.getElementById('orderItemName').value = item.name;
+  document.getElementById('orderQty').value = item.quantity;
+  document.getElementById('orderUnit').value = item.unit;
+  document.getElementById('orderPrice').value = item.price;
+  openModal('modalOrder');
+}
+
+async function saveOrderItem() {
+  const name = document.getElementById('orderItemName').value.trim();
+  if (!name) { toast('Item name is required', 'error'); return; }
+  const id = document.getElementById('orderEditId').value;
+  const data = {
+    name,
+    quantity: document.getElementById('orderQty').value || '1',
+    unit: document.getElementById('orderUnit').value,
+    price: document.getElementById('orderPrice').value || '0',
+  };
+  try {
+    if (id) {
+      await apiCall('updateOrderItem', { id, ...data });
+      toast('Item updated', 'success');
+    } else {
+      await apiCall('addOrderItem', data);
+      toast('Item added', 'success');
+    }
+    closeModal('modalOrder');
+    await syncAll(true);
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteOrderItem(id) {
+  if (!confirm('Delete this order item?')) return;
+  try {
+    await apiCall('deleteOrderItem', { id });
+    toast('Item deleted');
+    await syncAll(true);
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+function toggleSelectAll(cb) {
+  document.querySelectorAll('.order-cb').forEach(c => c.checked = cb.checked);
+}
+
+// Single-row instant action: Order → Purchase tab
+async function addOneOrderToPurchase(id) {
+  try {
+    await apiCall('addOrdersToPurchase', { ids: [id] });
+    toast('Added to Purchase List', 'success');
+    await syncAll(true);
+    showTab('purchase');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function addToPurchaseList() {
+  const selected = [...document.querySelectorAll('.order-cb:checked')].map(c => c.value);
+  if (!selected.length) { toast('Select at least one item', 'warning'); return; }
+  try {
+    await apiCall('addOrdersToPurchase', { ids: selected });
+    toast(`${selected.length} item(s) added to Purchase List`, 'success');
+    document.getElementById('selectAll').checked = false;
+    await syncAll(true);
+    showTab('purchase');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ============================================================
+//  PURCHASE ITEMS CRUD
+// ============================================================
+function openAddPurchaseModal() {
+  document.getElementById('modalPurchaseTitle').textContent = 'Add Purchase';
+  document.getElementById('purchaseEditId').value = '';
+  document.getElementById('purchaseItemName').value = '';
+  document.getElementById('purchaseQty').value = '';
+  document.getElementById('purchaseUnit').value = 'NOS';
+  document.getElementById('purchasePrice').value = '';
+  setTodayDate();
+  openModal('modalPurchase');
+}
+
+function editPurchaseItem(id) {
+  const item = purchaseItems.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('modalPurchaseTitle').textContent = 'Edit Purchase';
+  document.getElementById('purchaseEditId').value = id;
+  // Convert raw date (any format) back to yyyy-mm-dd for the date input
+  const rawDate = item.date || '';
+  let isoDate = rawDate;
+  if (rawDate && !/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+    const d = new Date(rawDate);
+    if (!isNaN(d.getTime())) {
+      isoDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+  }
+  document.getElementById('purchaseDate').value = isoDate;
+  document.getElementById('purchaseItemName').value = item.name;
+  document.getElementById('purchaseQty').value = item.quantity;
+  document.getElementById('purchaseUnit').value = item.unit;
+  document.getElementById('purchasePrice').value = item.price;
+  openModal('modalPurchase');
+}
+
+async function savePurchaseItem() {
+  const name = document.getElementById('purchaseItemName').value.trim();
+  const date = document.getElementById('purchaseDate').value;
+  if (!name) { toast('Item name is required', 'error'); return; }
+  if (!date) { toast('Date is required', 'error'); return; }
+  const id = document.getElementById('purchaseEditId').value;
+  const data = { name, date, quantity: document.getElementById('purchaseQty').value || '1', unit: document.getElementById('purchaseUnit').value, price: document.getElementById('purchasePrice').value || '0' };
+  try {
+    if (id) {
+      await apiCall('updatePurchaseItem', { id, ...data });
+      toast('Purchase updated', 'success');
+    } else {
+      await apiCall('addPurchaseItem', data);
+      toast('Purchase added', 'success');
+    }
+    closeModal('modalPurchase');
+    await syncAll(true);
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function deletePurchaseItem(id) {
+  if (!confirm('Delete this purchase?')) return;
+  try {
+    await apiCall('deletePurchaseItem', { id });
+    toast('Purchase deleted');
+    await syncAll(true);
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+function toggleSelectAllPurchase(cb) {
+  document.querySelectorAll('.purchase-cb:not(:disabled)').forEach(c => c.checked = cb.checked);
+}
+
+// Single-row instant action: Purchase → Stock tab
+async function confirmOnePurchase(id) {
+  try {
+    await apiCall('markPurchased', { ids: [id] });
+    toast('Moved to Stock', 'success');
+    await syncAll(true);
+    showTab('stock');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function markPurchasedSelected() {
+  const selected = [...document.querySelectorAll('.purchase-cb:checked')].map(c => c.value);
+  if (!selected.length) { toast('Select pending purchases to confirm', 'warning'); return; }
+  try {
+    await apiCall('markPurchased', { ids: selected });
+    toast(`${selected.length} item(s) moved to Stock`, 'success');
+    document.getElementById('selectAllPurchase').checked = false;
+    await syncAll(true);
+    showTab('stock');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ============================================================
+//  STOCK ITEMS CRUD
+// ============================================================
+function openAddStockModal() {
+  document.getElementById('modalStockTitle').textContent = 'Add Stock Item';
+  document.getElementById('stockEditId').value = '';
+  document.getElementById('stockItemName').value = '';
+  document.getElementById('stockQty').value = '';
+  document.getElementById('stockUnit').value = 'NOS';
+  document.getElementById('stockPrice').value = '';
+  openModal('modalStock');
+}
+
+function editStockItem(id) {
+  const item = stockItems.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('modalStockTitle').textContent = 'Edit Stock Item';
+  document.getElementById('stockEditId').value = id;
+  document.getElementById('stockItemName').value = item.name;
+  document.getElementById('stockQty').value = item.quantity;
+  document.getElementById('stockUnit').value = item.unit;
+  document.getElementById('stockPrice').value = item.price;
+  openModal('modalStock');
+}
+
+async function saveStockItem() {
+  const name = document.getElementById('stockItemName').value.trim();
+  if (!name) { toast('Item name is required', 'error'); return; }
+  const id = document.getElementById('stockEditId').value;
+  const data = { name, quantity: document.getElementById('stockQty').value || '0', unit: document.getElementById('stockUnit').value, price: document.getElementById('stockPrice').value || '0' };
+  try {
+    if (id) {
+      await apiCall('updateStockItem', { id, ...data });
+      toast('Stock updated', 'success');
+    } else {
+      await apiCall('addStockItem', data);
+      toast('Stock item added', 'success');
+    }
+    closeModal('modalStock');
+    await syncAll(true);
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteStockItem(id) {
+  if (!confirm('Delete this stock item?')) return;
+  try {
+    await apiCall('deleteStockItem', { id });
+    toast('Stock item deleted');
+    await syncAll(true);
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// Single-row instant action: Stock qty save → auto-check Reorder tab
+async function saveOneStockQty(id) {
+  const inp = document.getElementById('stockQtyInput_' + id);
+  if (!inp) return;
+  const qty = parseFloat(inp.value) || 0;
+  try {
+    await apiCall('bulkUpdateStockQty', { updates: [{ id, quantity: qty }] });
+    if (qty <= 0) {
+      toast('Item out of stock — moved to Reorder', 'warning');
+      await syncAll(true);
+      showTab('reorder');
+    } else {
+      toast('Stock quantity saved', 'success');
+      await syncAll(true);
+    }
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function saveAllStockQty() {
+  const updates = [];
+  stockItems.filter(i => parseFloat(i.quantity) > 0).forEach(item => {
+    const inp = document.getElementById('stockQtyInput_' + item.id);
+    if (inp) updates.push({ id: item.id, quantity: inp.value });
+  });
+  if (!updates.length) { toast('No items to update', 'warning'); return; }
+  try {
+    await apiCall('bulkUpdateStockQty', { updates });
+    toast('Stock quantities saved', 'success');
+    await syncAll(true);
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ============================================================
+//  REORDER
+// ============================================================
+async function reorderItem(id) {
+  const item = stockItems.find(i => i.id === id);
+  if (!item) return;
+  try {
+    await apiCall('addOrderItem', { name: item.name, quantity: item.quantity, unit: item.unit, price: item.price });
+    toast(`${item.name} added to Order List`, 'success');
+    await syncAll(true);
+    showTab('order');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function reorderAll() {
+  const outItems = stockItems.filter(i => parseFloat(i.quantity) <= 0);
+  if (!outItems.length) { toast('No out-of-stock items', 'warning'); return; }
+  if (!confirm(`Add all ${outItems.length} out-of-stock items to Order List?`)) return;
+  try {
+    for (const item of outItems) {
+      await apiCall('addOrderItem', { name: item.name, quantity: item.quantity, unit: item.unit, price: item.price });
+    }
+    toast(`${outItems.length} items added to Order List`, 'success');
+    await syncAll(true);
+    showTab('order');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ============================================================
+//  MODAL HELPERS
+// ============================================================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+// ============================================================
+//  TOAST
+// ============================================================
+function toast(msg, type = '') {
+  const wrap = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ============================================================
+//  UTILS
+// ============================================================
+function esc(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
