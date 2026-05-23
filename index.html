@@ -1515,15 +1515,34 @@ async function saveAllStockQty() {
 }
 
 // ============================================================
-//  REORDER → PURCHASE (direct, no Order List hop)
+//  REORDER → PURCHASE (direct, using latest purchase qty & price)
 // ============================================================
+
+// Find the most recent purchase record for an item name
+function getLatestPurchaseFor(name) {
+  const matches = purchaseItems
+    .filter(p => p.name.trim().toLowerCase() === name.trim().toLowerCase())
+    .sort((a, b) => {
+      // Sort by date descending, then by rowIndex descending as tiebreak
+      const da = new Date(a.date || 0).getTime();
+      const db = new Date(b.date || 0).getTime();
+      return db !== da ? db - da : (b.rowIndex || 0) - (a.rowIndex || 0);
+    });
+  return matches[0] || null;
+}
+
 async function reorderItemToPurchase(id) {
   const item = stockItems.find(i => i.id === id);
   if (!item) return;
   try {
     const today = new Date().toISOString().split('T')[0];
-    await apiCall('addPurchaseItem', { name: item.name, quantity: item.quantity, unit: item.unit, price: item.price, date: today });
-    toast(`${item.name} added to Purchase List`, 'success');
+    // Use latest purchase qty & price; fall back to stock record values
+    const latest  = getLatestPurchaseFor(item.name);
+    const qty     = latest ? latest.quantity : item.quantity;
+    const price   = latest ? latest.price   : item.price;
+    const unit    = latest ? latest.unit    : item.unit;
+    await apiCall('addPurchaseItem', { name: item.name, quantity: qty, unit, price, date: today });
+    toast(`${item.name} added to Purchase List (qty: ${qty}, ₹${parseFloat(price).toFixed(2)})`, 'success');
     await syncAll(true);
     showTab('purchase');
   } catch (e) { toast('Error: ' + e.message, 'error'); }
@@ -1536,9 +1555,13 @@ async function reorderAll() {
   try {
     const today = new Date().toISOString().split('T')[0];
     for (const item of outItems) {
-      await apiCall('addPurchaseItem', { name: item.name, quantity: item.quantity, unit: item.unit, price: item.price, date: today });
+      const latest = getLatestPurchaseFor(item.name);
+      const qty    = latest ? latest.quantity : item.quantity;
+      const price  = latest ? latest.price   : item.price;
+      const unit   = latest ? latest.unit    : item.unit;
+      await apiCall('addPurchaseItem', { name: item.name, quantity: qty, unit, price, date: today });
     }
-    toast(`${outItems.length} items sent to Purchase List`, 'success');
+    toast(`${outItems.length} items sent to Purchase List with latest prices`, 'success');
     await syncAll(true);
     showTab('purchase');
   } catch (e) { toast('Error: ' + e.message, 'error'); }
