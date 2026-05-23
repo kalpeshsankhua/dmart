@@ -1025,15 +1025,12 @@ function renderAll() {
 }
 
 function updateStats() {
-  const outOfStock = stockItems.filter(i => parseFloat(i.quantity) <= 0);
-  document.getElementById('stat-master').textContent = masterItems.length;
-  document.getElementById('badge-master').textContent = masterItems.length;
-  document.getElementById('stat-purchase').textContent = purchaseItems.length;
-  document.getElementById('stat-stock').textContent = stockItems.filter(i => parseFloat(i.quantity) > 0).length;
-  document.getElementById('stat-reorder').textContent = outOfStock.length;
+  const inStock    = stockItems.filter(i => parseFloat(i.quantity) > 0).length;
+  const outOfStock = stockItems.filter(i => parseFloat(i.quantity) <= 0).length;
+  document.getElementById('badge-master').textContent   = masterItems.length;
   document.getElementById('badge-purchase').textContent = purchaseItems.length;
-  document.getElementById('badge-stock').textContent = stockItems.filter(i => parseFloat(i.quantity) > 0).length;
-  document.getElementById('badge-reorder').textContent = outOfStock.length;
+  document.getElementById('badge-stock').textContent    = inStock;
+  document.getElementById('badge-reorder').textContent  = outOfStock;
 }
 
 // --- ORDER TABLE ---
