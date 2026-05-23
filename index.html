@@ -478,6 +478,39 @@
   .reorder-row { background: #fff9f9 !important; }
   .reorder-row:hover { background: #fff5f5 !important; }
 
+
+  /* SUGGESTION DROPDOWN */
+  .suggestion-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: var(--surface);
+    border: 1.5px solid var(--accent);
+    border-top: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 500;
+    display: none;
+    box-shadow: var(--shadow-md);
+  }
+  .suggestion-dropdown.open { display: block; }
+  .sug-item {
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .sug-item:last-child { border-bottom: none; }
+  .sug-item:hover, .sug-item.active { background: var(--accent-light); }
+  .sug-item-name { font-weight: 600; color: var(--text); }
+  .sug-item-meta { font-size: 11px; color: var(--text3); white-space: nowrap; }
+  .form-group { position: relative; }
+
   /* Number input */
   input[type="number"] { -moz-appearance: textfield; }
   input[type="number"]::-webkit-outer-spin-button,
@@ -538,8 +571,8 @@
   </div>
   <!-- TABS -->
   <div class="tabs-bar">
-    <button class="tab-btn active" onclick="showTab('order')" id="tab-order">
-      📋 Order List <span class="tab-badge" id="badge-order">0</span>
+    <button class="tab-btn active" onclick="showTab('master')" id="tab-master">
+      📗 Master List <span class="tab-badge" id="badge-master">0</span>
     </button>
     <button class="tab-btn" onclick="showTab('purchase')" id="tab-purchase">
       🛍️ Purchase <span class="tab-badge" id="badge-purchase">0</span>
@@ -558,8 +591,8 @@
   <!-- STATS -->
   <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-val" id="stat-order">0</div>
-      <div class="stat-lbl">Order Items</div>
+      <div class="stat-val" id="stat-master">0</div>
+      <div class="stat-lbl">Master Items</div>
     </div>
     <div class="stat-card">
       <div class="stat-val" id="stat-purchase">0</div>
@@ -572,42 +605,6 @@
     <div class="stat-card" style="border-color:rgba(192,57,43,0.25);">
       <div class="stat-val" id="stat-reorder" style="color:var(--danger)">0</div>
       <div class="stat-lbl">Out of Stock</div>
-    </div>
-  </div>
-
-  <!-- ======================== TAB 1: ORDER LIST ======================== -->
-  <div class="tab-panel active" id="panel-order">
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <span class="section-title">Order List</span>
-      </div>
-      <div class="toolbar-right">
-        <button class="btn btn-secondary btn-sm" onclick="openAddOrderModal()">+ Add Item</button>
-        <button class="btn btn-accent2 btn-sm" onclick="addToPurchaseList()" id="btnAddToPurchase">
-          🛍️ Add to Purchase
-        </button>
-      </div>
-    </div>
-    <div class="table-wrap">
-      <div class="table-scroll">
-        <table id="orderTable">
-          <thead>
-            <tr class="select-all-row">
-              <th style="width:36px"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
-              <th>#</th>
-              <th>Item Name</th>
-              <th>Qty</th>
-              <th>Unit</th>
-              <th>Price (₹)</th>
-              <th>Selected</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="orderBody">
-            <tr><td colspan="8" class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No items yet</div><div class="empty-sub">Add your regular grocery items</div></td></tr>
-          </tbody>
-        </table>
-      </div>
     </div>
   </div>
 
@@ -691,7 +688,7 @@
         <span class="section-title">Out of Stock / Reorder</span>
       </div>
       <div class="toolbar-right">
-        <button class="btn btn-accent2 btn-sm" onclick="reorderAll()">🛒 Add All to Order</button>
+        <button class="btn btn-accent2 btn-sm" onclick="reorderAll()">🛒 Add All → Purchase</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -715,6 +712,43 @@
     </div>
   </div>
 
+  <!-- ======================== TAB 1: MASTER LIST (was Tab 5) ======================== -->
+  <div class="tab-panel active" id="panel-master">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="section-title">Master List</span>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-secondary btn-sm" onclick="openAddMasterModal()">+ Add Item</button>
+        <button class="btn btn-accent2 btn-sm" onclick="addSelectedMasterToPurchase()">🛍️ Add Selected →</button>
+      </div>
+    </div>
+    <div class="info-bar">
+      📗 Select items and tap <strong>Add Selected →</strong> to move to Purchase, or use the per-row <strong>→</strong> button for single items.
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="masterTable">
+          <thead>
+            <tr class="select-all-row">
+              <th style="width:36px"><input type="checkbox" id="selectAllMaster" onchange="toggleSelectAllMaster(this)"></th>
+              <th>#</th>
+              <th>Item Name</th>
+              <th>Default Qty</th>
+              <th>Unit</th>
+              <th>Default Price (₹)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="masterBody">
+            <tr><td colspan="7" class="empty-state"><div class="empty-icon">📗</div><div class="empty-text">No master items yet</div><div class="empty-sub">Add items here and send them to Purchase with one tap</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
 </main>
 
 <!-- ======================== MODALS ======================== -->
@@ -730,7 +764,8 @@
       <input type="hidden" id="orderEditId">
       <div class="form-group">
         <label class="form-label">Item Name *</label>
-        <input class="form-control" id="orderItemName" placeholder="e.g. Basmati Rice" type="text">
+        <input class="form-control" id="orderItemName" placeholder="Type to search master items…" type="text" autocomplete="off" oninput="showSuggestions(this,'orderItemName')" onfocus="showSuggestions(this,'orderItemName')">
+        <div class="suggestion-dropdown" id="sug-orderItemName"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="form-group">
@@ -774,8 +809,8 @@
       </div>
       <div class="form-group">
         <label class="form-label">Item Name *</label>
-        <input class="form-control" id="purchaseItemName" placeholder="e.g. Basmati Rice" type="text" list="orderItemSuggestions">
-        <datalist id="orderItemSuggestions"></datalist>
+        <input class="form-control" id="purchaseItemName" placeholder="Type to search master items…" type="text" autocomplete="off" oninput="showSuggestions(this,'purchaseItemName')" onfocus="showSuggestions(this,'purchaseItemName')">
+        <div class="suggestion-dropdown" id="sug-purchaseItemName"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="form-group">
@@ -815,7 +850,8 @@
       <input type="hidden" id="stockEditId">
       <div class="form-group">
         <label class="form-label">Item Name *</label>
-        <input class="form-control" id="stockItemName" placeholder="e.g. Basmati Rice" type="text">
+        <input class="form-control" id="stockItemName" placeholder="Type to search master items…" type="text" autocomplete="off" oninput="showSuggestions(this,'stockItemName')" onfocus="showSuggestions(this,'stockItemName')">
+        <div class="suggestion-dropdown" id="sug-stockItemName"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="form-group">
@@ -844,6 +880,46 @@
   </div>
 </div>
 
+<!-- ADD/EDIT MASTER ITEM MODAL -->
+<div class="modal-overlay" id="modalMaster">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalMasterTitle">Add Master Item</div>
+      <button class="modal-close" onclick="closeModal('modalMaster')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="masterEditId">
+      <div class="form-group">
+        <label class="form-label">Item Name *</label>
+        <input class="form-control" id="masterItemName" placeholder="e.g. Basmati Rice" type="text">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Default Qty</label>
+          <input class="form-control" id="masterQty" type="number" step="0.01" placeholder="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit</label>
+          <select class="form-control" id="masterUnit">
+            <option>NOS</option>
+            <option>Kgs</option>
+            <option>Grams</option>
+            <option>Litre</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Default Price (₹)</label>
+        <input class="form-control" id="masterPrice" type="number" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalMaster')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMasterItem()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST CONTAINER -->
 <div class="toast-wrap" id="toastWrap"></div>
 
@@ -858,6 +934,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDAQhqS_deBDtN
 let orderItems = [];
 let purchaseItems = [];
 let stockItems = [];
+let masterItems = [];
 let autoSyncTimer = null;
 
 // ---- Init ----
@@ -909,6 +986,7 @@ async function syncAll(silent = false) {
     orderItems = data.orderItems || [];
     purchaseItems = data.purchaseItems || [];
     stockItems = data.stockItems || [];
+    masterItems = data.masterItems || [];
     renderAll();
     const now = new Date().toLocaleTimeString();
     setSyncState('ok', 'Synced');
@@ -938,21 +1016,21 @@ function startAutoSync() {
 //  RENDER
 // ============================================================
 function renderAll() {
-  renderOrderTable();
   renderPurchaseTable();
   renderStockTable();
   renderReorderTable();
+  renderMasterTable();
   updateStats();
   updateSuggestions();
 }
 
 function updateStats() {
   const outOfStock = stockItems.filter(i => parseFloat(i.quantity) <= 0);
-  document.getElementById('stat-order').textContent = orderItems.length;
+  document.getElementById('stat-master').textContent = masterItems.length;
+  document.getElementById('badge-master').textContent = masterItems.length;
   document.getElementById('stat-purchase').textContent = purchaseItems.length;
   document.getElementById('stat-stock').textContent = stockItems.filter(i => parseFloat(i.quantity) > 0).length;
   document.getElementById('stat-reorder').textContent = outOfStock.length;
-  document.getElementById('badge-order').textContent = orderItems.length;
   document.getElementById('badge-purchase').textContent = purchaseItems.length;
   document.getElementById('badge-stock').textContent = stockItems.filter(i => parseFloat(i.quantity) > 0).length;
   document.getElementById('badge-reorder').textContent = outOfStock.length;
@@ -1112,16 +1190,71 @@ function renderReorderTable() {
       <td><span class="badge badge-out">${esc(item.unit)}</span></td>
       <td>₹${parseFloat(item.price||0).toFixed(2)}</td>
       <td class="td-actions">
-        <button class="btn btn-accent2 btn-sm" onclick="reorderItem('${item.id}')">🛒 Reorder</button>
+        <button class="btn btn-accent2 btn-sm" onclick="reorderItemToPurchase('${item.id}')" style="padding:5px 8px;font-size:11px;">🛒 → Purchase</button>
       </td>
     </tr>
   `).join('');
 }
 
 function updateSuggestions() {
-  const dl = document.getElementById('orderItemSuggestions');
-  dl.innerHTML = orderItems.map(i => `<option value="${esc(i.name)}">`).join('');
+  // no-op: suggestions now driven by masterItems via showSuggestions()
 }
+
+// ── MASTER ITEM AUTOCOMPLETE ──────────────────────────────────────────────────
+// fieldMap: which unit/qty/price fields to auto-fill per input id
+const FIELD_MAP = {
+  purchaseItemName: { unit: 'purchaseUnit', qty: 'purchaseQty', price: 'purchasePrice' },
+  stockItemName:    { unit: 'stockUnit',    qty: 'stockQty',    price: 'stockPrice'    },
+};
+
+function showSuggestions(input, inputId) {
+  const q   = input.value.trim().toLowerCase();
+  const box = document.getElementById('sug-' + inputId);
+  if (!box) return;
+
+  const matches = q.length === 0
+    ? masterItems.slice(0, 30)
+    : masterItems.filter(m => m.name.toLowerCase().includes(q));
+
+  if (!matches.length) { box.classList.remove('open'); return; }
+
+  box.innerHTML = matches.map((m, i) => `
+    <div class="sug-item" onmousedown="selectSuggestion(event,'${inputId}','${esc(m.id)}')" data-idx="${i}">
+      <span class="sug-item-name">${esc(m.name)}</span>
+      <span class="sug-item-meta">${esc(m.quantity)} ${esc(m.unit)} · ₹${parseFloat(m.price||0).toFixed(0)}</span>
+    </div>`).join('');
+  box.classList.add('open');
+}
+
+function selectSuggestion(e, inputId, masterId) {
+  e.preventDefault();
+  const m = masterItems.find(x => x.id === masterId);
+  if (!m) return;
+  document.getElementById(inputId).value = m.name;
+  const fm = FIELD_MAP[inputId];
+  if (fm) {
+    if (fm.unit)  document.getElementById(fm.unit).value  = m.unit;
+    if (fm.qty  && !document.getElementById(fm.qty).value)  document.getElementById(fm.qty).value  = m.quantity;
+    if (fm.price && !document.getElementById(fm.price).value) document.getElementById(fm.price).value = m.price;
+  }
+  closeSuggestions(inputId);
+}
+
+function closeSuggestions(inputId) {
+  const box = document.getElementById('sug-' + inputId);
+  if (box) box.classList.remove('open');
+}
+
+// Close all dropdowns on outside click
+document.addEventListener('click', e => {
+  ['purchaseItemName','stockItemName'].forEach(id => {
+    const inp = document.getElementById(id);
+    const box = document.getElementById('sug-' + id);
+    if (inp && box && !inp.contains(e.target) && !box.contains(e.target)) {
+      box.classList.remove('open');
+    }
+  });
+});
 
 // ============================================================
 //  ORDER ITEMS CRUD
@@ -1382,30 +1515,148 @@ async function saveAllStockQty() {
 }
 
 // ============================================================
-//  REORDER
+//  REORDER → PURCHASE (direct, no Order List hop)
 // ============================================================
-async function reorderItem(id) {
+async function reorderItemToPurchase(id) {
   const item = stockItems.find(i => i.id === id);
   if (!item) return;
   try {
-    await apiCall('addOrderItem', { name: item.name, quantity: item.quantity, unit: item.unit, price: item.price });
-    toast(`${item.name} added to Order List`, 'success');
+    const today = new Date().toISOString().split('T')[0];
+    await apiCall('addPurchaseItem', { name: item.name, quantity: item.quantity, unit: item.unit, price: item.price, date: today });
+    toast(`${item.name} added to Purchase List`, 'success');
     await syncAll(true);
-    showTab('order');
+    showTab('purchase');
   } catch (e) { toast('Error: ' + e.message, 'error'); }
 }
 
 async function reorderAll() {
   const outItems = stockItems.filter(i => parseFloat(i.quantity) <= 0);
   if (!outItems.length) { toast('No out-of-stock items', 'warning'); return; }
-  if (!confirm(`Add all ${outItems.length} out-of-stock items to Order List?`)) return;
+  if (!confirm(`Send all ${outItems.length} out-of-stock items to Purchase List?`)) return;
   try {
+    const today = new Date().toISOString().split('T')[0];
     for (const item of outItems) {
-      await apiCall('addOrderItem', { name: item.name, quantity: item.quantity, unit: item.unit, price: item.price });
+      await apiCall('addPurchaseItem', { name: item.name, quantity: item.quantity, unit: item.unit, price: item.price, date: today });
     }
-    toast(`${outItems.length} items added to Order List`, 'success');
+    toast(`${outItems.length} items sent to Purchase List`, 'success');
     await syncAll(true);
-    showTab('order');
+    showTab('purchase');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+
+// ============================================================
+//  MASTER ITEMS CRUD
+// ============================================================
+function renderMasterTable() {
+  const sorted = [...masterItems].sort((a,b) => a.name.localeCompare(b.name));
+  const tbody  = document.getElementById('masterBody');
+  if (!sorted.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><div class="empty-icon">📗</div><div class="empty-text">No master items yet</div><div class="empty-sub">Add items and send them directly to Purchase</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = sorted.map((item, idx) => `
+    <tr>
+      <td class="cb-wrap"><input type="checkbox" class="master-cb" value="${item.id}"></td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">${idx+1}</td>
+      <td style="font-weight:600">${esc(item.name)}</td>
+      <td>${esc(item.quantity)}</td>
+      <td><span class="badge badge-stock">${esc(item.unit)}</span></td>
+      <td>₹${parseFloat(item.price||0).toFixed(2)}</td>
+      <td class="td-actions">
+        <button class="btn btn-accent2 btn-sm" onclick="addOneMasterToPurchase('${item.id}')" title="Send to Purchase" style="padding:5px 8px;font-size:11px;gap:2px;">🛍️ →</button>
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="editMasterItem('${item.id}')" title="Edit">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteMasterItem('${item.id}')" title="Delete">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openAddMasterModal() {
+  document.getElementById('modalMasterTitle').textContent = 'Add Master Item';
+  document.getElementById('masterEditId').value = '';
+  document.getElementById('masterItemName').value = '';
+  document.getElementById('masterQty').value = '';
+  document.getElementById('masterUnit').value = 'NOS';
+  document.getElementById('masterPrice').value = '';
+  openModal('modalMaster');
+}
+
+function editMasterItem(id) {
+  const item = masterItems.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('modalMasterTitle').textContent = 'Edit Master Item';
+  document.getElementById('masterEditId').value = id;
+  document.getElementById('masterItemName').value = item.name;
+  document.getElementById('masterQty').value = item.quantity;
+  document.getElementById('masterUnit').value = item.unit;
+  document.getElementById('masterPrice').value = item.price;
+  openModal('modalMaster');
+}
+
+// Single row: Master → Purchase
+async function addOneMasterToPurchase(id) {
+  const item = masterItems.find(i => i.id === id);
+  if (!item) return;
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    await apiCall('addPurchaseItem', { name: item.name, quantity: item.quantity, unit: item.unit, price: item.price, date: today });
+    toast(`${item.name} added to Purchase List`, 'success');
+    await syncAll(true);
+    showTab('purchase');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// Bulk: selected Master items → Purchase
+async function addSelectedMasterToPurchase() {
+  const ids = [...document.querySelectorAll('.master-cb:checked')].map(c => c.value);
+  if (!ids.length) { toast('Select at least one item', 'warning'); return; }
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    for (const id of ids) {
+      const item = masterItems.find(i => i.id === id);
+      if (item) await apiCall('addPurchaseItem', { name: item.name, quantity: item.quantity, unit: item.unit, price: item.price, date: today });
+    }
+    toast(`${ids.length} item(s) added to Purchase List`, 'success');
+    document.getElementById('selectAllMaster').checked = false;
+    await syncAll(true);
+    showTab('purchase');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+function toggleSelectAllMaster(cb) {
+  document.querySelectorAll('.master-cb').forEach(c => c.checked = cb.checked);
+}
+
+async function saveMasterItem() {
+  const name = document.getElementById('masterItemName').value.trim();
+  if (!name) { toast('Item name is required', 'error'); return; }
+  const id   = document.getElementById('masterEditId').value;
+  const data = {
+    name,
+    quantity: document.getElementById('masterQty').value  || '1',
+    unit:     document.getElementById('masterUnit').value,
+    price:    document.getElementById('masterPrice').value || '0',
+  };
+  try {
+    if (id) {
+      await apiCall('updateMasterItem', { id, ...data });
+      toast('Master item updated', 'success');
+    } else {
+      await apiCall('addMasterItem', data);
+      toast('Master item added', 'success');
+    }
+    closeModal('modalMaster');
+    await syncAll(true);
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteMasterItem(id) {
+  if (!confirm('Delete this master item?')) return;
+  try {
+    await apiCall('deleteMasterItem', { id });
+    toast('Master item deleted');
+    await syncAll(true);
   } catch (e) { toast('Error: ' + e.message, 'error'); }
 }
 
