@@ -1518,17 +1518,40 @@ async function saveAllStockQty() {
 //  REORDER → PURCHASE (direct, using latest purchase qty & price)
 // ============================================================
 
-// Find the most recent purchase record for an item name
-function getLatestPurchaseFor(name) {
-  const matches = purchaseItems
-    .filter(p => p.name.trim().toLowerCase() === name.trim().toLowerCase())
+// Find best qty/price for reorder:
+// Priority 1 — latest PURCHASED (confirmed) purchase record
+// Priority 2 — latest pending purchase record
+// Priority 3 — master list default
+// Priority 4 — stock record itself (last resort, may be 0)
+function getBestReorderData(itemName) {
+  const name = itemName.trim().toLowerCase();
+
+  // All purchase records for this item, newest first
+  const allPurchases = purchaseItems
+    .filter(p => p.name.trim().toLowerCase() === name)
     .sort((a, b) => {
-      // Sort by date descending, then by rowIndex descending as tiebreak
       const da = new Date(a.date || 0).getTime();
       const db = new Date(b.date || 0).getTime();
       return db !== da ? db - da : (b.rowIndex || 0) - (a.rowIndex || 0);
     });
-  return matches[0] || null;
+
+  // Prefer a confirmed (purchased=Yes) record with qty > 0
+  const confirmed = allPurchases.find(p =>
+    p.purchased === 'Yes' && parseFloat(p.quantity) > 0
+  );
+  if (confirmed) return { qty: confirmed.quantity, price: confirmed.price, unit: confirmed.unit, src: 'last purchase' };
+
+  // Fall back to any purchase record with qty > 0
+  const anyWithQty = allPurchases.find(p => parseFloat(p.quantity) > 0);
+  if (anyWithQty) return { qty: anyWithQty.quantity, price: anyWithQty.price, unit: anyWithQty.unit, src: 'purchase record' };
+
+  // Fall back to master list
+  const master = masterItems.find(m => m.name.trim().toLowerCase() === name);
+  if (master && parseFloat(master.quantity) > 0)
+    return { qty: master.quantity, price: master.price, unit: master.unit, src: 'master default' };
+
+  // Last resort — whatever the stock record says (may be 0)
+  return null;
 }
 
 async function reorderItemToPurchase(id) {
@@ -1536,13 +1559,13 @@ async function reorderItemToPurchase(id) {
   if (!item) return;
   try {
     const today = new Date().toISOString().split('T')[0];
-    // Use latest purchase qty & price; fall back to stock record values
-    const latest  = getLatestPurchaseFor(item.name);
-    const qty     = latest ? latest.quantity : item.quantity;
-    const price   = latest ? latest.price   : item.price;
-    const unit    = latest ? latest.unit    : item.unit;
+    const best  = getBestReorderData(item.name);
+    const qty   = best ? best.qty   : item.quantity;
+    const price = best ? best.price : item.price;
+    const unit  = best ? best.unit  : item.unit;
     await apiCall('addPurchaseItem', { name: item.name, quantity: qty, unit, price, date: today });
-    toast(`${item.name} added to Purchase List (qty: ${qty}, ₹${parseFloat(price).toFixed(2)})`, 'success');
+    const src = best ? ` (from ${best.src})` : '';
+    toast(`${item.name} → Purchase: qty ${qty}, ₹${parseFloat(price).toFixed(2)}${src}`, 'success');
     await syncAll(true);
     showTab('purchase');
   } catch (e) { toast('Error: ' + e.message, 'error'); }
@@ -1555,13 +1578,13 @@ async function reorderAll() {
   try {
     const today = new Date().toISOString().split('T')[0];
     for (const item of outItems) {
-      const latest = getLatestPurchaseFor(item.name);
-      const qty    = latest ? latest.quantity : item.quantity;
-      const price  = latest ? latest.price   : item.price;
-      const unit   = latest ? latest.unit    : item.unit;
+      const best  = getBestReorderData(item.name);
+      const qty   = best ? best.qty   : item.quantity;
+      const price = best ? best.price : item.price;
+      const unit  = best ? best.unit  : item.unit;
       await apiCall('addPurchaseItem', { name: item.name, quantity: qty, unit, price, date: today });
     }
-    toast(`${outItems.length} items sent to Purchase List with latest prices`, 'success');
+    toast(`${outItems.length} items sent to Purchase with latest qty & price`, 'success');
     await syncAll(true);
     showTab('purchase');
   } catch (e) { toast('Error: ' + e.message, 'error'); }
